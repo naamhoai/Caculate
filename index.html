@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bán Hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="container">
+    <h2 class="text-center mt-4 mb-4">Nhập Đơn Hàng</h2>
+
+    <div class="row" id="productList"></div>
+
+    <div class="text-center mt-4 p-3 bg-light rounded">
+        <h3>Tổng Tiền: <span id="totalPrice">0</span> VND</h3>
+        <button class="btn btn-primary btn-lg mt-3" onclick="saveInvoice()">
+            Lưu Hóa Đơn
+        </button>
+        <div class="text-center mt-3">
+            <a href="data.html" class="btn btn-info btn-lg">Xem Danh Sách Đơn Hàng</a>
+        </div>
+    </div>
+
+    <script>
+        // Danh sách sản phẩm phân theo loại - ĐÃ CẬP NHẬT THEO MENU MỚI
+        const products = {
+            foods: [
+                { id: 1, name: "Khoai tây chiên", price: 30000, type: "food" },
+                { id: 2, name: "Nem chua rán", price: 35000, type: "food" },
+                { id: 3, name: "Cá bống", price: 40000, type: "food" },
+                { id: 4, name: "Cá mực", price: 45000, type: "food" },
+                { id: 5, name: "Cá chỉ vàng", price: 40000, type: "food" },
+                { id: 6, name: "Xúc xích", price: 20000, type: "food" },
+                { id: 7, name: "Lạp xưởng", price: 25000, type: "food" },
+                { id: 8, name: "Hoa quả", price: 30000, type: "food" },
+                { id: 9, name: "Thịt xiên nướng", price: 15000, type: "food" },
+                { id: 10, name: "Viên chả cá", price: 20000, type: "food" }
+            ],
+            drinks: [
+                { id: 11, name: "Trà chanh", price: 15000, type: "drink" },
+                { id: 12, name: "Trà đào", price: 20000, type: "drink" },
+                { id: 13, name: "Trà quất", price: 20000, type: "drink" },
+                { id: 14, name: "Nước mía", price: 10000, type: "drink" },
+                { id: 15, name: "Sting", price: 15000, type: "drink" },
+                { id: 16, name: "Bò húc", price: 15000, type: "drink" },
+                { id: 17, name: "Bia", price: 25000, type: "drink" },
+                { id: 18, name: "Coca chai to bán theo cốc nhỏ", price: 10000, type: "drink" }
+            ],
+            tabaco: [
+                { id: 19, name: "Thăng long", price: 50000, type: "tabaco" },
+                { id: 20, name: "Sài gòn xanh", price: 60000, type: "tabaco" }
+            ]
+        };
+
+        // Hiển thị danh sách sản phẩm
+        function loadProducts() {
+            const productList = document.getElementById("productList");
+            productList.innerHTML = "";
+
+            // Tạo tab phân loại
+            productList.innerHTML = `
+                <ul class="nav nav-tabs mb-4" id="productTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="foods-tab" data-bs-toggle="tab" 
+                                data-bs-target="#foods" type="button" role="tab" 
+                                aria-controls="foods" aria-selected="true">
+                            Đồ ăn
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="drinks-tab" data-bs-toggle="tab" 
+                                data-bs-target="#drinks" type="button" role="tab" 
+                                aria-controls="drinks" aria-selected="false">
+                            Đồ uống
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tabaco-tab" data-bs-toggle="tab" 
+                                data-bs-target="#tabaco" type="button" role="tab" 
+                                aria-controls="tabaco" aria-selected="false">
+                            Thuốc lá
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="productTabsContent">
+                    <div class="tab-pane fade show active" id="foods" role="tabpanel" aria-labelledby="foods-tab">
+                        <div class="row" id="foodList"></div>
+                    </div>
+                    <div class="tab-pane fade" id="drinks" role="tabpanel" aria-labelledby="drinks-tab">
+                        <div class="row" id="drinkList"></div>
+                    </div>
+                    <div class="tab-pane fade" id="tabaco" role="tabpanel" aria-labelledby="tabaco-tab">
+                        <div class="row" id="tabacoList"></div>
+                    </div>
+                </div>
+            `;
+
+            // Hiển thị đồ ăn
+            const foodList = document.getElementById("foodList");
+            products.foods.forEach((product, index) => {
+                foodList.appendChild(createProductCard(product, index));
+            });
+
+            // Hiển thị đồ uống
+            const drinkList = document.getElementById("drinkList");
+            products.drinks.forEach((product, index) => {
+                drinkList.appendChild(createProductCard(product, index + products.foods.length));
+            });
+
+            // Hiển thị thuốc lá
+            const tabacoList = document.getElementById("tabacoList");
+            products.tabaco.forEach((product, index) => {
+                tabacoList.appendChild(createProductCard(product, index + products.foods.length + products.drinks.length));
+            });
+        }
+
+        // Tạo card sản phẩm
+        function createProductCard(product, index) {
+            const col = document.createElement("div");
+            col.className = "col-md-4 mb-3";
+
+            col.innerHTML = `
+                <div class="card h-100 product-card" data-type="${product.type}">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">${product.name}</h5>
+                        <p class="card-text text-success">${product.price.toLocaleString()} VND</p>
+                        <div class="input-group">
+                            <input type="number" id="qty${index}" 
+                                   min="0" value="0" 
+                                   class="form-control text-center" 
+                                   onchange="updateTotal()">
+                        </div>
+                    </div>
+                </div>
+            `;
+            return col;
+        }
+
+        // Cập nhật tổng tiền
+        function updateTotal() {
+            let total = 0;
+            const allProducts = [...products.foods, ...products.drinks, ...products.tabaco];
+
+            allProducts.forEach((product, index) => {
+                const qty = parseInt(document.getElementById(`qty${index}`).value) || 0;
+                total += product.price * qty;
+            });
+
+            document.getElementById("totalPrice").textContent = total.toLocaleString();
+        }
+
+        // Lưu hóa đơn
+        function saveInvoice() {
+            const allProducts = [...products.foods, ...products.drinks, ...products.tabaco];
+            const invoiceItems = allProducts.map((product, index) => {
+                const qty = parseInt(document.getElementById(`qty${index}`).value) || 0;
+                return {
+                    product: product.name,
+                    price: product.price,
+                    quantity: qty
+                };
+            }).filter(item => item.quantity > 0);
+
+            if (invoiceItems.length > 0) {
+                const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+                invoices.push({
+                    date: new Date().toLocaleString("vi-VN"),
+                    invoice: invoiceItems,
+                    payment: "Chưa thanh toán"
+                });
+                localStorage.setItem("invoices", JSON.stringify(invoices));
+
+                // Reset form sau khi lưu
+                allProducts.forEach((_, index) => {
+                    document.getElementById(`qty${index}`).value = "0";
+                });
+                document.getElementById("totalPrice").textContent = "0";
+
+                alert("Hóa đơn đã được lưu thành công!");
+                window.location.href = "data.html";
+            } else {
+                alert("Vui lòng chọn ít nhất một sản phẩm!");
+            }
+        }
+
+        // Khởi tạo trang
+        document.addEventListener("DOMContentLoaded", function () {
+            loadProducts();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
