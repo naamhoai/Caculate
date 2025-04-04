@@ -220,6 +220,22 @@
             document.getElementById("editSection").style.display = "none";
         }
 
+        // Xóa hóa đơn
+        function deleteInvoice(index) {
+            if (confirm("Bạn có chắc chắn muốn xóa hóa đơn này?")) {
+                const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+                invoices.splice(index, 1);
+                localStorage.setItem("invoices", JSON.stringify(invoices));
+                loadInvoices();
+                
+                // Nếu đang chỉnh sửa hóa đơn bị xóa thì đóng phần chỉnh sửa
+                if (editingIndex === index) {
+                    document.getElementById("editSection").style.display = "none";
+                    editingIndex = null;
+                }
+            }
+        }
+
         // ========== PHẦN HIỂN THỊ DANH SÁCH HÓA ĐƠN ==========
         function loadInvoices() {
             const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
@@ -277,6 +293,9 @@
                                 </button>
                                 <button class="btn btn-sm btn-outline-warning" onclick="editInvoice(${index})">
                                     Sửa
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteInvoice(${index})">
+                                    Xóa
                                 </button>
                                 ${paymentStatus === "Chưa thanh toán" ? `
                                     <button class="btn btn-sm btn-success" onclick="payInvoice(${index}, 'Tiền mặt')">
