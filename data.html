@@ -6,23 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Hóa Đơn</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        .product-badge {
+            font-size: 0.8rem;
+        }
+        .invoice-item:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
 </head>
 
-<body class="container">
-    <h2 class="text-center mt-4">Danh Sách Hóa Đơn</h2>
-    <ul id="invoiceList" class="list-group"></ul>
-    <div class="text-center mt-3">
-        <!-- Sửa dòng 18 từ: -->
+<body class="container py-4">
+    <h2 class="text-center mb-4">Danh Sách Hóa Đơn</h2>
+    <div id="invoiceList" class="mb-5"></div>
+    
+    <div class="text-center">
         <a href="index.html" class="btn btn-secondary">Quay lại nhập đơn hàng</a>
-        <!-- Giữ nguyên vì đã đúng -->
     </div>
 
-    <div id="editSection" class="mt-4" style="display:none;">
-        <h3>Chỉnh sửa hóa đơn</h3>
-        <ul id="editInvoiceList" class="list-group"></ul>
+    <!-- Section chỉnh sửa hóa đơn -->
+    <div id="editSection" class="mt-4 p-3 border rounded" style="display:none;">
+        <h3 class="mb-3">Chỉnh sửa hóa đơn</h3>
+        <div class="mb-3">
+            <ul id="editInvoiceList" class="list-group mb-3"></ul>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Tổng cộng:</h5>
+                <h4 class="mb-0 text-danger" id="editTotalPrice">0 VND</h4>
+            </div>
+        </div>
 
-        <div class="row mt-3">
+        <div class="row g-2 mb-3">
             <div class="col-md-4">
                 <select id="productCategory" class="form-select" onchange="updateProductOptions()">
                     <option value="">Chọn loại sản phẩm</option>
@@ -36,47 +49,54 @@
                     <option value="">Chọn sản phẩm</option>
                 </select>
             </div>
-            <div class="col-md-4">
-                <input type="number" id="newQuantity" class="form-control" placeholder="Số lượng" min="1" value="1">
+            <div class="col-md-2">
+                <input type="number" id="newQuantity" class="form-control" placeholder="SL" min="1" value="1">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-success w-100" onclick="addProduct()">Thêm</button>
             </div>
         </div>
 
-        <div class="mt-3">
-            <button class="btn btn-success" onclick="addProduct()">Thêm sản phẩm</button>
-            <button class="btn btn-primary" onclick="saveEdits()">Lưu chỉnh sửa</button>
+        <div class="d-flex justify-content-end gap-2">
             <button class="btn btn-secondary" onclick="cancelEdit()">Hủy</button>
+            <button class="btn btn-primary" onclick="saveEdits()">Lưu thay đổi</button>
         </div>
     </div>
 
     <script>
+        // Danh sách sản phẩm
         const products = {
             foods: [
                 { id: 1, name: "Khoai tây chiên", price: 30000, type: "food" },
-                { id: 2, name: "Nem chua rán", price: 35000, type: "food" },
-                { id: 3, name: "Cá bống", price: 40000, type: "food" },
-                { id: 4, name: "Cá mực", price: 45000, type: "food" },
-                { id: 5, name: "Cá chỉ vàng", price: 40000, type: "food" },
-                { id: 6, name: "Xúc xích", price: 20000, type: "food" },
-                { id: 7, name: "Lạp xưởng", price: 25000, type: "food" },
-                { id: 8, name: "Hoa quả", price: 30000, type: "food" },
-                { id: 9, name: "Thịt xiên nướng", price: 15000, type: "food" },
-                { id: 10, name: "Viên chả cá", price: 20000, type: "food" }
+                { id: 2, name: "Nem chua rán", price: 8000, type: "food" },
+                { id: 3, name: "1 Đĩa Nem chua rán", price: 70000, type: "food" },
+                { id: 4, name: "Cá bống", price: 10000, type: "food" },
+                { id: 5, name: "Cá mực", price: 90000, type: "food" },
+                { id: 6, name: "Cá chỉ vàng", price: 6000, type: "food" },
+                { id: 7, name: "Xúc xích", price: 15000, type: "food" },
+                { id: 8, name: "Lạp xưởng", price: 15000, type: "food" },
+                { id: 9, name: "Hoa quả", price: 30000, type: "food" },
+                { id: 10, name: "Thịt xiên nướng", price: 15000, type: "food" },
+                { id: 11, name: "Viên chả cá", price: 30000, type: "food" }
             ],
             drinks: [
-                { id: 11, name: "Trà chanh", price: 15000, type: "drink" },
-                { id: 12, name: "Trà đào", price: 20000, type: "drink" },
-                { id: 13, name: "Trà quất", price: 20000, type: "drink" },
-                { id: 14, name: "Nước mía", price: 10000, type: "drink" },
-                { id: 15, name: "Sting", price: 15000, type: "drink" },
-                { id: 16, name: "Bò húc", price: 15000, type: "drink" },
-                { id: 17, name: "Bia", price: 25000, type: "drink" },
-                { id: 18, name: "Coca chai to bán theo cốc nhỏ", price: 10000, type: "drink" }
+                { id: 12, name: "Trà chanh", price: 15000, type: "drink" },
+                { id: 13, name: "Trà đào", price: 20000, type: "drink" },
+                { id: 14, name: "Trà quất", price: 15000, type: "drink" },
+                { id: 15, name: "Nước mía", price: 10000, type: "drink" },
+                { id: 16, name: "Sting", price: 15000, type: "drink" },
+                { id: 17, name: "Bò húc", price: 20000, type: "drink" },
+                { id: 18, name: "Bia", price: 20000, type: "drink" },
+                { id: 19, name: "Coca chai to bán theo cốc nhỏ", price: 15000, type: "drink" }
             ],
             tabaco: [
-                { id: 19, name: "Thăng long", price: 50000, type: "tabaco" },
-                { id: 20, name: "Sài gòn xanh", price: 60000, type: "tabaco" }
+                { id: 20, name: "Thăng long", price: 15000, type: "tabaco" },
+                { id: 21, name: "Sài gòn", price: 20000, type: "tabaco" }
             ]
         };
+
+        // Biến toàn cục
+        let editingIndex = null;
 
         // Cập nhật danh sách sản phẩm khi chọn loại
         function updateProductOptions() {
@@ -96,17 +116,18 @@
             }
         }
 
-        // Thêm sản phẩm vào hóa đơn đang chỉnh sửa
+        // Thêm sản phẩm vào hóa đơn
         function addProduct() {
             const productId = parseInt(document.getElementById('newProduct').value);
             const quantity = parseInt(document.getElementById('newQuantity').value);
+            const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
 
-            if (!productId || !quantity) {
-                alert('Vui lòng chọn sản phẩm và nhập số lượng');
+            if (!productId || isNaN(quantity) || quantity < 1) {
+                alert("Vui lòng chọn sản phẩm và nhập số lượng hợp lệ!");
                 return;
             }
 
-            // Tìm sản phẩm trong tất cả các loại
+            // Tìm sản phẩm trong danh sách
             let selectedProduct = null;
             for (const category in products) {
                 const found = products[category].find(p => p.id === productId);
@@ -116,262 +137,259 @@
                 }
             }
 
-            if (selectedProduct) {
-                // Thêm vào danh sách chỉnh sửa (cần triển khai logic tùy vào hệ thống của bạn)
-                console.log('Thêm sản phẩm:', selectedProduct.name, 'Số lượng:', quantity);
-                // TODO: Thêm vào editInvoiceList
-            }
-        }
-
-        // Lưu chỉnh sửa
-        function saveEdits() {
-            // TODO: Triển khai logic lưu chỉnh sửa
-            alert('Đã lưu chỉnh sửa');
-            document.getElementById('editSection').style.display = 'none';
-        }
-
-        // Hủy chỉnh sửa
-        function cancelEdit() {
-            document.getElementById('editSection').style.display = 'none';
-        }
-    </script>
-
-    <script>
-        let editingIndex = null;
-
-        function loadInvoices() {
-            let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
-            let invoiceList = document.getElementById("invoiceList");
-            invoiceList.innerHTML = "";
-
-            if (invoices.length === 0) {
-                invoiceList.innerHTML = `
-                    <li class="list-group-item text-center text-muted py-4">
-                        <img src="empty-box.png" alt="Empty" style="height: 60px; opacity: 0.6;" class="mb-2">
-                        <div>Chưa có hóa đơn nào</div>
-                    </li>
-                `;
+            if (!selectedProduct) {
+                alert("Không tìm thấy sản phẩm!");
                 return;
             }
 
-            invoices.forEach((inv, index) => {
-                let totalAmount = inv.invoice.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                let paymentMethod = inv.payment || "Chưa thanh toán";
+            const invoice = invoices[editingIndex].invoice;
+            const existingItem = invoice.find(item => item.id === productId);
 
-                let statusClass = paymentMethod === "Chưa thanh toán" ? "bg-secondary" :
-                    paymentMethod === "Tiền mặt" ? "bg-warning text-dark" : "bg-success";
-
-                let li = document.createElement("li");
-                li.className = "list-group-item";
-                li.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                        <div>
-                            <h5 class="mb-1">Hóa đơn #${index + 1}</h5>
-                            <small class="text-muted">${inv.date}</small>
-                        </div>
-                        <span class="badge ${statusClass}">${paymentMethod}</span>
-                    </div>
-                    
-                    <ul class="list-group list-group-flush my-2">
-                        ${inv.invoice.map(item => `
-                            <li class="list-group-item d-flex justify-content-between py-1">
-                                <span>${item.product} x ${item.quantity}</span>
-                                <span>${(item.price * item.quantity).toLocaleString()} VND</span>
-                            </li>
-                        `).join("")}
-                    </ul>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <strong class="text-danger">${totalAmount.toLocaleString()} VND</strong>
-                        <div>
-                            <button class="btn btn-sm btn-outline-info" onclick="viewInvoiceDetails(${index})">
-                                Chi tiết
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning" onclick="editInvoice(${index})">
-                                Sửa
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteInvoice(${index})">
-                                Xóa
-                            </button>
-                            ${paymentMethod === "Chưa thanh toán" ? `
-                                <button class="btn btn-sm btn-warning ms-1" onclick="payCash(${index})">
-                                    Tiền mặt
-                                </button>
-                                <button class="btn btn-sm btn-primary ms-1" onclick="payTransfer(${index})">
-                                    Chuyển khoản
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-                invoiceList.appendChild(li);
-            });
-        }
-
-        function payCash(index) {
-            let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
-            invoices[index].payment = "Tiền mặt";
-            localStorage.setItem("invoices", JSON.stringify(invoices));
-            loadInvoices();
-        }
-
-        function payTransfer(index) {
-            let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
-            invoices[index].payment = "Chuyển khoản";
-            localStorage.setItem("invoices", JSON.stringify(invoices));
-            window.location.href = `qr.html?index=${index}`;
-        }
-
-        function editInvoice(index) {
-            editingIndex = index;
-            let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
-            let invoice = invoices[index].invoice;
-            document.getElementById("editSection").style.display = "block";
-            let editInvoiceList = document.getElementById("editInvoiceList");
-            editInvoiceList.innerHTML = "";
-            invoice.forEach((item, i) => {
-                let li = document.createElement("li");
-                li.className = "list-group-item d-flex justify-content-between align-items-center";
-                li.innerHTML = `
-                    <div>
-                        <strong>${item.product}</strong>
-                        <div class="text-muted small">${item.price.toLocaleString()} VND x ${item.quantity}</div>
-                    </div>
-                    <button class="btn btn-sm btn-danger" onclick="removeProduct(${i})">
-                        Xóa
-                    </button>
-                `;
-                editInvoiceList.appendChild(li);
-            });
-        }
-
-        function removeProduct(productIndex) {
-            let invoices = JSON.parse(localStorage.getItem("invoices"));
-            invoices[editingIndex].invoice.splice(productIndex, 1);
-            localStorage.setItem("invoices", JSON.stringify(invoices));
-            editInvoice(editingIndex);
-        }
-
-        function addProduct() {
-            let newProduct = document.getElementById("newProduct").value;
-            let newQuantity = parseInt(document.getElementById("newQuantity").value, 10);
-            let invoices = JSON.parse(localStorage.getItem("invoices"));
-
-            if (!newProduct || !newQuantity || newQuantity < 1) {
-                alert("Vui lòng chọn sản phẩm và nhập số lượng hợp lệ!");
-                return;
-            }
-
-            let invoice = invoices[editingIndex].invoice;
-            let existingProduct = invoice.find(item => item.product === newProduct);
-
-            if (existingProduct) {
-                existingProduct.quantity += newQuantity;
+            if (existingItem) {
+                existingItem.quantity += quantity;
             } else {
-                let defaultPrice =
-                    newProduct === "Sản phẩm A" ? 100000 :
-                        newProduct === "Sản phẩm B" ? 200000 : 300000;
-
                 invoice.push({
-                    product: newProduct,
-                    price: defaultPrice,
-                    quantity: newQuantity
+                    id: selectedProduct.id,
+                    product: selectedProduct.name,
+                    price: selectedProduct.price,
+                    quantity: quantity,
+                    type: selectedProduct.type
                 });
             }
 
             localStorage.setItem("invoices", JSON.stringify(invoices));
-            document.getElementById("newProduct").value = "";
-            document.getElementById("newQuantity").value = "";
-            editInvoice(editingIndex);
+            updateEditInvoiceDisplay();
+            document.getElementById('newQuantity').value = "1";
         }
 
+        // Xóa sản phẩm khỏi hóa đơn
+        function removeProduct(productId) {
+            const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+            const invoice = invoices[editingIndex].invoice;
+            
+            const index = invoice.findIndex(item => item.id === productId);
+            if (index !== -1) {
+                invoice.splice(index, 1);
+                localStorage.setItem("invoices", JSON.stringify(invoices));
+                updateEditInvoiceDisplay();
+            }
+        }
+
+        // Cập nhật hiển thị hóa đơn đang chỉnh sửa
+        function updateEditInvoiceDisplay() {
+            const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+            const invoice = invoices[editingIndex].invoice;
+            const listElement = document.getElementById("editInvoiceList");
+            const totalElement = document.getElementById("editTotalPrice");
+
+            listElement.innerHTML = "";
+            let total = 0;
+
+            invoice.forEach(item => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+
+                const li = document.createElement("li");
+                li.className = "list-group-item d-flex justify-content-between align-items-center invoice-item";
+                li.innerHTML = `
+                    <div>
+                        <strong>${item.product}</strong>
+                        <div class="text-muted small">${item.price.toLocaleString()}đ × ${item.quantity}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-primary fw-bold">${subtotal.toLocaleString()}đ</span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeProduct(${item.id})">
+                            <i class="bi bi-trash"></i> Xóa
+                        </button>
+                    </div>
+                `;
+                listElement.appendChild(li);
+            });
+
+            totalElement.textContent = `${total.toLocaleString()} VND`;
+        }
+
+        // Lưu chỉnh sửa
         function saveEdits() {
             document.getElementById("editSection").style.display = "none";
             loadInvoices();
         }
 
-        function deleteInvoice(index) {
-            if (confirm("Bạn có chắc chắn muốn xóa hóa đơn này?")) {
-                let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
-                invoices.splice(index, 1);
-                localStorage.setItem("invoices", JSON.stringify(invoices));
+        // Hủy chỉnh sửa
+        function cancelEdit() {
+            document.getElementById("editSection").style.display = "none";
+        }
+
+        // ========== PHẦN HIỂN THỊ DANH SÁCH HÓA ĐƠN ==========
+        function loadInvoices() {
+            const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+            const container = document.getElementById("invoiceList");
+
+            if (invoices.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5 bg-light rounded">
+                        <i class="bi bi-receipt" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p class="mt-3 text-muted">Chưa có hóa đơn nào</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = "";
+            invoices.forEach((invoice, index) => {
+                const total = invoice.invoice.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const paymentStatus = invoice.payment || "Chưa thanh toán";
+                
+                const statusClass = paymentStatus === "Chưa thanh toán" ? "bg-secondary" :
+                                  paymentStatus === "Tiền mặt" ? "bg-warning text-dark" : "bg-success";
+
+                const card = document.createElement("div");
+                card.className = "card mb-3";
+                card.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="card-title mb-1">Hóa đơn #${index + 1}</h5>
+                                <small class="text-muted">${invoice.date}</small>
+                            </div>
+                            <span class="badge ${statusClass}">${paymentStatus}</span>
+                        </div>
+                        
+                        <ul class="list-group list-group-flush my-2">
+                            ${invoice.invoice.slice(0, 3).map(item => `
+                                <li class="list-group-item d-flex justify-content-between py-1">
+                                    <span>${item.product} × ${item.quantity}</span>
+                                    <span>${(item.price * item.quantity).toLocaleString()}đ</span>
+                                </li>
+                            `).join("")}
+                            ${invoice.invoice.length > 3 ? `
+                                <li class="list-group-item text-center py-1 text-muted">
+                                    + ${invoice.invoice.length - 3} sản phẩm khác
+                                </li>
+                            ` : ''}
+                        </ul>
+                        
+                        <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                            <strong class="text-danger">${total.toLocaleString()} VND</strong>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-info" onclick="viewInvoiceDetails(${index})">
+                                    Chi tiết
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning" onclick="editInvoice(${index})">
+                                    Sửa
+                                </button>
+                                ${paymentStatus === "Chưa thanh toán" ? `
+                                    <button class="btn btn-sm btn-success" onclick="payInvoice(${index}, 'Tiền mặt')">
+                                        Tiền mặt
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="payInvoice(${index}, 'Chuyển khoản')">
+                                        Chuyển khoản
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Chỉnh sửa hóa đơn
+        function editInvoice(index) {
+            editingIndex = index;
+            document.getElementById("editSection").style.display = "block";
+            updateEditInvoiceDisplay();
+        }
+
+        // Thanh toán hóa đơn
+        function payInvoice(index, method) {
+            const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+            invoices[index].payment = method;
+            localStorage.setItem("invoices", JSON.stringify(invoices));
+            
+            if (method === "Chuyển khoản") {
+                window.location.href = `qr.html?index=${index}`;
+            } else {
                 loadInvoices();
             }
         }
 
-        // Cập nhật hàm viewInvoiceDetails trong data.html
+        // Xem chi tiết hóa đơn
         function viewInvoiceDetails(index) {
-            let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
-            if (invoices.length > index) {
-                let invoice = invoices[index].invoice;
-                let total = invoice.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                let paymentMethod = invoices[index].payment || "Chưa thanh toán";
+            const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+            const invoice = invoices[index];
+            const total = invoice.invoice.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const paymentStatus = invoice.payment || "Chưa thanh toán";
+            const statusClass = paymentStatus === "Chưa thanh toán" ? "bg-secondary" :
+                              paymentStatus === "Tiền mặt" ? "bg-warning text-dark" : "bg-success";
 
-                let details = `
-            <div class="p-3">
-                <h4>HÓA ĐƠN #${index + 1}</h4>
-                <p><strong>Ngày:</strong> ${invoices[index].date}</p>
-                <p><strong>Trạng thái:</strong> <span class="badge ${paymentMethod === "Chưa thanh toán" ? "bg-secondary" : paymentMethod === "Tiền mặt" ? "bg-warning text-dark" : "bg-success"}">${paymentMethod}</span></p>
-                <hr>
-                <h5>Chi tiết:</h5>
-                <ul class="list-group mb-3">
-        `;
-
-                invoice.forEach(item => {
-                    details += `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>${item.product}</strong>
-                        <div class="text-muted small">${item.quantity} x ${item.price.toLocaleString()} VND</div>
+            const modalHTML = `
+                <div class="modal fade" id="invoiceModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Hóa đơn #${index + 1}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <div>
+                                        <strong>Ngày:</strong> ${invoice.date}
+                                    </div>
+                                    <span class="badge ${statusClass}">${paymentStatus}</span>
+                                </div>
+                                
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Sản phẩm</th>
+                                            <th class="text-end">Đơn giá</th>
+                                            <th class="text-end">Số lượng</th>
+                                            <th class="text-end">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${invoice.invoice.map(item => `
+                                            <tr>
+                                                <td>${item.product}</td>
+                                                <td class="text-end">${item.price.toLocaleString()}đ</td>
+                                                <td class="text-end">${item.quantity}</td>
+                                                <td class="text-end">${(item.price * item.quantity).toLocaleString()}đ</td>
+                                            </tr>
+                                        `).join("")}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="3" class="text-end">Tổng cộng:</th>
+                                            <th class="text-end text-danger">${total.toLocaleString()}đ</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </div>
                     </div>
-                    <span class="badge bg-primary rounded-pill">${(item.price * item.quantity).toLocaleString()} VND</span>
-                </li>
+                </div>
             `;
-                });
 
-                details += `
-                </ul>
-                <div class="d-flex justify-content-between align-items-center border-top pt-3">
-                    <h4>Tổng cộng:</h4>
-                    <h4 class="text-danger">${total.toLocaleString()} VND</h4>
-                </div>
-            </div>
-        `;
-
-                // Tạo modal thay vì alert
-                let modal = document.createElement("div");
-                modal.innerHTML = `
-            <div class="modal fade" id="invoiceModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Chi tiết hóa đơn</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            ${details}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-                document.body.appendChild(modal);
-                var invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'));
-                invoiceModal.show();
-
-                // Xóa modal sau khi đóng
-                document.getElementById('invoiceModal').addEventListener('hidden.bs.modal', function () {
-                    modal.remove();
-                });
-            }
+            const modalContainer = document.createElement("div");
+            modalContainer.innerHTML = modalHTML;
+            document.body.appendChild(modalContainer);
+            
+            const modal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+            modal.show();
+            
+            modalContainer.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modalContainer);
+            });
         }
 
-        // Khởi tạo
-        document.addEventListener("DOMContentLoaded", loadInvoices);
+        // Khởi tạo trang
+        document.addEventListener("DOMContentLoaded", () => {
+            loadInvoices();
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
