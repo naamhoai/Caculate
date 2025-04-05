@@ -3,138 +3,147 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Báo Cáo Doanh Thu</title>
-
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-
+  <title>Báo Cáo Theo Đơn</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body {
+    .report-card {
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .report-table {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .table-header {
       background-color: #f8f9fa;
     }
   </style>
 </head>
-<body>
+<body class="bg-light">
   <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-      <div class="d-flex align-items-center gap-2">
-        <h2 class="mb-0">Báo Cáo Doanh Thu</h2>
-        <a href="index.html" class="btn btn-secondary">
-          <i class="bi bi-arrow-left"></i> Quay lại
-        </a>
-      </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0">Báo Cáo Theo Đơn</h2>
+      <a href="index.html" class="btn btn-outline-secondary">
+        Về trang chính
+      </a>
     </div>
 
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3">
-        <div class="p-3 bg-white shadow-sm rounded text-center">
-          <div class="fs-2 text-primary"><i class="bi bi-table"></i></div>
-          <div class="fs-4 fw-bold" id="totalInvoices">0</div>
-          <div class="text-muted">Tổng số đơn</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="p-3 bg-white shadow-sm rounded text-center">
-          <div class="fs-2 text-success"><i class="bi bi-currency-dollar"></i></div>
-          <div class="fs-4 fw-bold" id="totalRevenue">0 VND</div>
-          <div class="text-muted">Tổng doanh thu</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="p-3 bg-white shadow-sm rounded text-center">
-          <div class="fs-2 text-warning"><i class="bi bi-wallet2"></i></div>
-          <div class="fs-4 fw-bold" id="cashInvoices">0</div>
-          <div class="text-muted">Đơn tiền mặt</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="p-3 bg-white shadow-sm rounded text-center">
-          <div class="fs-2 text-info"><i class="bi bi-bank"></i></div>
-          <div class="fs-4 fw-bold" id="transferInvoices">0</div>
-          <div class="text-muted">Đơn chuyển khoản</div>
-        </div>
-      </div>
-    </div>
-
-    <h5 class="mb-3">Chi tiết đơn hàng</h5>
-    <div class="table-responsive shadow-sm rounded bg-white">
-      <table class="table table-hover table-bordered mb-0">
-        <thead class="table-light text-center">
+    <!-- Bảng tổng hợp như trong ảnh -->
+    <div class="report-card bg-white p-3 mb-4">
+      <table class="table table-bordered mb-0">
+        <thead class="table-header">
           <tr>
-            <th>STT</th>
-            <th>Thời gian</th>
-            <th>Số lượng SP</th>
-            <th>Tổng tiền</th>
-            <th>Hình thức TT</th>
-            <th>Xem chi tiết</th>
+            <th class="text-center">Tổng số đơn</th>
+            <th class="text-center">Tổng doanh thu</th>
+            <th class="text-center">Thanh toán tiền mặt</th>
+            <th class="text-center">Chuyển khoản</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-center h5" id="totalInvoices">0</td>
+            <td class="text-center h5" id="totalRevenue">0 VND</td>
+            <td class="text-center h5" id="cashInvoices">0</td>
+            <td class="text-center h5" id="transferInvoices">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bảng chi tiết đơn hàng -->
+    <div class="report-table p-3">
+      <table class="table table-hover">
+        <thead class="table-header">
+          <tr>
+            <th>#</th>
+            <th>Ngày</th>
+            <th class="text-end">Số sản phẩm</th>
+            <th class="text-end">Thành tiền</th>
+            <th>Phương thức</th>
+            <th>Hành động</th>
           </tr>
         </thead>
         <tbody id="invoiceDetails">
-          <tr>
-            <td colspan="6" class="text-center py-5 text-muted">Không có đơn hàng nào</td>
-          </tr>
+          <!-- Dữ liệu đơn hàng sẽ được thêm vào đây -->
         </tbody>
       </table>
     </div>
   </div>
 
   <script>
-    function formatCurrency(amount) {
-      return amount.toLocaleString('vi-VN') + ' VND';
-    }
+    function loadInvoiceReport() {
+      const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
 
-    function renderAllInvoices() {
-      const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-      const tbody = document.getElementById("invoiceDetails");
-      const totalInvoicesEl = document.getElementById("totalInvoices");
-      const totalRevenueEl = document.getElementById("totalRevenue");
-      const cashInvoicesEl = document.getElementById("cashInvoices");
-      const transferInvoicesEl = document.getElementById("transferInvoices");
+      // Tính toán tổng hợp
+      const totalInvoices = invoices.length;
+      const totalRevenue = invoices.reduce((sum, invoice) => {
+        return sum + invoice.invoice.reduce((invoiceSum, item) => invoiceSum + (item.price * item.quantity), 0);
+      }, 0);
 
-      tbody.innerHTML = "";
+      const cashInvoices = invoices.filter(invoice => invoice.payment === "Tiền mặt").length;
+      const transferInvoices = invoices.filter(invoice => invoice.payment === "Chuyển khoản").length;
+
+      // Cập nhật bảng tổng hợp
+      document.getElementById('totalInvoices').textContent = totalInvoices;
+      document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString() + ' VND';
+      document.getElementById('cashInvoices').textContent = cashInvoices;
+      document.getElementById('transferInvoices').textContent = transferInvoices;
+
+      // Cập nhật bảng chi tiết
+      const invoiceDetails = document.getElementById('invoiceDetails');
 
       if (invoices.length === 0) {
-        tbody.innerHTML = `
+        invoiceDetails.innerHTML = `
           <tr>
-            <td colspan="6" class="text-center py-5 text-muted">
-              Không có đơn hàng nào
-            </td>
-          </tr>`;
-        totalInvoicesEl.innerText = "0";
-        totalRevenueEl.innerText = "0 VND";
-        cashInvoicesEl.innerText = "0";
-        transferInvoicesEl.innerText = "0";
+            <td colspan="6" class="text-center py-5 text-muted">Không có đơn hàng nào</td>
+          </tr>
+        `;
         return;
       }
 
-      let totalRevenue = 0, cashCount = 0, transferCount = 0;
+      invoiceDetails.innerHTML = invoices.map((invoice, index) => {
+        const total = invoice.invoice.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const paymentClass = invoice.payment === "Tiền mặt" ? "text-warning" : "text-primary";
+        const paymentText = invoice.payment === "Tiền mặt" ? "Tiền mặt" : "Chuyển khoản";
 
-      invoices.forEach((inv, index) => {
-        totalRevenue += inv.total;
-        if (inv.payment === "Tiền mặt") cashCount++;
-        else transferCount++;
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td class="text-center">${index + 1}</td>
-          <td class="text-center">${inv.time}</td>
-          <td class="text-center">${inv.items.length}</td>
-          <td class="text-end">${formatCurrency(inv.total)}</td>
-          <td class="text-center">${inv.payment}</td>
-          <td class="text-center"><a href="detail.html?id=${inv.id}" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${invoice.date}</td>
+            <td class="text-end">${invoice.invoice.length}</td>
+            <td class="text-end">${total.toLocaleString()} VND</td>
+            <td><span class="${paymentClass}">${paymentText}</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary" onclick="viewInvoiceDetails(${index})">
+                Xem chi tiết
+              </button>
+            </td>
+          </tr>
         `;
-        tbody.appendChild(row);
-      });
-
-      totalInvoicesEl.innerText = invoices.length;
-      totalRevenueEl.innerText = formatCurrency(totalRevenue);
-      cashInvoicesEl.innerText = cashCount;
-      transferInvoicesEl.innerText = transferCount;
+      }).join('');
     }
 
-    renderAllInvoices();
+    function viewInvoiceDetails(index) {
+      const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+      const invoice = invoices[index];
+      
+      let details = "Chi tiết đơn hàng #" + (index + 1) + "\n\n";
+      details += "Ngày: " + invoice.date + "\n";
+      details += "Phương thức: " + invoice.payment + "\n\n";
+      
+      invoice.invoice.forEach(item => {
+        details += `${item.product} - ${item.price.toLocaleString()}đ x ${item.quantity} = ${(item.price * item.quantity).toLocaleString()}đ\n`;
+      });
+      
+      details += "\nTổng cộng: " + invoice.invoice.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString() + "đ";
+      
+      alert(details);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadInvoiceReport();
+    });
   </script>
 </body>
 </html>
