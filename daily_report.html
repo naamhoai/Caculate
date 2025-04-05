@@ -2,134 +2,150 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Báo Cáo Theo Đơn</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Báo Cáo Doanh Thu Ngày</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+  </style>
 </head>
-<body class="bg-light">
+<body>
   <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="mb-0">Báo Cáo Theo Đơn</h2>
-      <a href="index.html" class="btn btn-secondary">
-        <i class="bi bi-arrow-left"></i> Về trang chính
-      </a>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+      <h2 class="mb-3 mb-md-0">Báo Cáo Doanh Thu Ngày</h2>
+      <input type="date" class="form-control w-auto" id="reportDate" />
     </div>
 
-    <div class="row text-center mb-4">
-      <div class="col-md-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-muted">Tổng số đơn</h5>
-            <p class="h4 mb-0" id="totalInvoices">0</p>
-          </div>
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="p-3 bg-white shadow-sm rounded text-center">
+          <div class="fs-2 text-primary"><i class="bi bi-table"></i></div>
+          <div class="fs-4 fw-bold" id="totalInvoices">0</div>
+          <div class="text-muted">Tổng số đơn</div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-muted">Tổng doanh thu</h5>
-            <p class="h4 mb-0" id="totalRevenue">0 VND</p>
-          </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 bg-white shadow-sm rounded text-center">
+          <div class="fs-2 text-success"><i class="bi bi-currency-dollar"></i></div>
+          <div class="fs-4 fw-bold" id="totalRevenue">0 VND</div>
+          <div class="text-muted">Tổng doanh thu</div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-muted">Thanh toán tiền mặt</h5>
-            <p class="h4 mb-0" id="cashInvoices">0</p>
-          </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 bg-white shadow-sm rounded text-center">
+          <div class="fs-2 text-warning"><i class="bi bi-wallet2"></i></div>
+          <div class="fs-4 fw-bold" id="cashInvoices">0</div>
+          <div class="text-muted">Đơn tiền mặt</div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-muted">Chuyển khoản</h5>
-            <p class="h4 mb-0" id="transferInvoices">0</p>
-          </div>
+      <div class="col-6 col-md-3">
+        <div class="p-3 bg-white shadow-sm rounded text-center">
+          <div class="fs-2 text-info"><i class="bi bi-bank"></i></div>
+          <div class="fs-4 fw-bold" id="transferInvoices">0</div>
+          <div class="text-muted">Đơn chuyển khoản</div>
         </div>
       </div>
     </div>
 
-    <div class="table-responsive shadow-sm rounded">
-      <table class="table table-hover table-bordered bg-white">
-        <thead class="table-dark text-center">
+    <h5 class="mb-3">Chi tiết đơn hàng</h5>
+    <div class="table-responsive shadow-sm rounded bg-white">
+      <table class="table table-hover table-bordered mb-0">
+        <thead class="table-light text-center">
           <tr>
-            <th>#</th>
-            <th>Ngày</th>
-            <th>Số sản phẩm</th>
-            <th>Thành tiền</th>
-            <th>Phương thức</th>
-            <th>Hành động</th>
+            <th>STT</th>
+            <th>Thời gian</th>
+            <th>Số lượng SP</th>
+            <th>Tổng tiền</th>
+            <th>Hình thức TT</th>
+            <th>Xem chi tiết</th>
           </tr>
         </thead>
         <tbody id="invoiceDetails">
-          <!-- Dữ liệu đơn hàng sẽ được thêm vào đây -->
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">Không có đơn hàng nào trong ngày này</td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
 
   <script>
-    function loadInvoiceReport() {
-      const invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+    // Hàm định dạng tiền
+    function formatCurrency(amount) {
+      return amount.toLocaleString('vi-VN') + ' VND';
+    }
 
-      const totalInvoices = invoices.length;
-      const totalRevenue = invoices.reduce((sum, invoice) => {
-        return sum + invoice.invoice.reduce((invoiceSum, item) => invoiceSum + (item.price * item.quantity), 0);
-      }, 0);
+    // Hàm để lọc đơn theo ngày
+    function filterInvoicesByDate(dateString) {
+      const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+      return invoices.filter(inv => inv.date === dateString);
+    }
 
-      const cashInvoices = invoices.filter(invoice => invoice.payment === "Tiền mặt").length;
-      const transferInvoices = invoices.filter(invoice => invoice.payment === "Chuyển khoản").length;
+    function renderReport(dateStr) {
+      const tbody = document.getElementById("invoiceDetails");
+      const totalInvoicesEl = document.getElementById("totalInvoices");
+      const totalRevenueEl = document.getElementById("totalRevenue");
+      const cashInvoicesEl = document.getElementById("cashInvoices");
+      const transferInvoicesEl = document.getElementById("transferInvoices");
 
-      document.getElementById('totalInvoices').textContent = totalInvoices;
-      document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString() + ' VND';
-      document.getElementById('cashInvoices').textContent = cashInvoices;
-      document.getElementById('transferInvoices').textContent = transferInvoices;
+      const data = filterInvoicesByDate(dateStr);
+      tbody.innerHTML = "";
 
-      const invoiceDetails = document.getElementById('invoiceDetails');
-
-      if (invoices.length === 0) {
-        invoiceDetails.innerHTML = `
+      if (data.length === 0) {
+        tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="text-center py-5 text-muted">Không có đơn hàng nào</td>
-          </tr>
-        `;
+            <td colspan="6" class="text-center py-5 text-muted">
+              Không có đơn hàng nào trong ngày này
+            </td>
+          </tr>`;
+        totalInvoicesEl.innerText = "0";
+        totalRevenueEl.innerText = "0 VND";
+        cashInvoicesEl.innerText = "0";
+        transferInvoicesEl.innerText = "0";
         return;
       }
 
-      invoiceDetails.innerHTML = invoices.map((invoice, index) => {
-        const total = invoice.invoice.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const paymentClass = invoice.payment === "Tiền mặt" ? "text-warning" : "text-primary";
-        const paymentIcon = invoice.payment === "Tiền mặt" ? "bi-cash-stack" : "bi-bank";
+      let totalRevenue = 0, cashCount = 0, transferCount = 0;
 
-        return `
-          <tr>
-            <td class="text-center">${index + 1}</td>
-            <td>${invoice.date}</td>
-            <td class="text-center">${invoice.invoice.length}</td>
-            <td>${total.toLocaleString()} VND</td>
-            <td class="text-center">
-              <i class="bi ${paymentIcon} ${paymentClass}"></i> ${invoice.payment}
-            </td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-outline-info" onclick="viewInvoiceDetails(${index})">
-                <i class="bi bi-eye"></i> Xem
-              </button>
-            </td>
-          </tr>
+      data.forEach((inv, index) => {
+        totalRevenue += inv.total;
+        if (inv.payment === "Tiền mặt") cashCount++;
+        else transferCount++;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="text-center">${index + 1}</td>
+          <td class="text-center">${inv.time}</td>
+          <td class="text-center">${inv.items.length}</td>
+          <td class="text-end">${formatCurrency(inv.total)}</td>
+          <td class="text-center">${inv.payment}</td>
+          <td class="text-center"><a href="detail.html?id=${inv.id}" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
         `;
-      }).join('');
+        tbody.appendChild(row);
+      });
+
+      totalInvoicesEl.innerText = data.length;
+      totalRevenueEl.innerText = formatCurrency(totalRevenue);
+      cashInvoicesEl.innerText = cashCount;
+      transferInvoicesEl.innerText = transferCount;
     }
 
-    function viewInvoiceDetails(index) {
-      // Tuỳ bạn implement chi tiết đơn hàng ở đây
-      alert("Xem chi tiết đơn hàng #" + (index + 1));
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      loadInvoiceReport();
+    // Xử lý khi chọn ngày
+    document.getElementById("reportDate").addEventListener("change", (e) => {
+      renderReport(e.target.value);
     });
+
+    // Tự động set ngày hôm nay
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("reportDate").value = today;
+    renderReport(today);
   </script>
 </body>
 </html>
